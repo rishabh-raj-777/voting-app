@@ -39,23 +39,19 @@ pipeline {
         }
 
         stage('Deploy to AKS') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    bat """
-                        echo 🔁 Applying all Kubernetes manifests...
-                        kubectl apply -f k8s\\
+            withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
+                bat 'echo 🔄 Applying all Kubernetes manifests...'
+                bat 'kubectl apply -f k8s-specifications\\'
 
-                        echo 🔁 Updating images for deployments...
-                        kubectl set image deployment/vote-deployment vote=%DOCKER_USER%/vote:%IMAGE_TAG% -n %K8S_NAMESPACE%
-                        kubectl set image deployment/result-deployment result=%DOCKER_USER%/result:%IMAGE_TAG% -n %K8S_NAMESPACE%
-                        kubectl set image deployment/worker-deployment worker=%DOCKER_USER%/worker:%IMAGE_TAG% -n %K8S_NAMESPACE%
+                bat 'echo 🔄 Updating images for deployments...'
+                bat 'kubectl set image deployment/vote vote=rishabhraj7/vote:1 -n default'
+                bat 'kubectl set image deployment/result result=rishabhraj7/result:1 -n default'
+                bat 'kubectl set image deployment/worker worker=rishabhraj7/worker:1 -n default'
 
-                        echo 🔍 Checking rollout status...
-                        kubectl rollout status deployment/vote-deployment -n %K8S_NAMESPACE% --timeout=60s
-                        kubectl rollout status deployment/result-deployment -n %K8S_NAMESPACE% --timeout=60s
-                        kubectl rollout status deployment/worker-deployment -n %K8S_NAMESPACE% --timeout=60s
-                    """
-                }
+                bat 'echo 🔍 Checking rollout status...'
+                bat 'kubectl rollout status deployment/vote -n default --timeout=60s'
+                bat 'kubectl rollout status deployment/result -n default --timeout=60s'
+                bat 'kubectl rollout status deployment/worker -n default --timeout=60s'
             }
         }
     }
