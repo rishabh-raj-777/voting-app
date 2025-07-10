@@ -40,7 +40,7 @@ pipeline {
 
         stage('Deploy to AKS') {
             steps {
-                withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     bat 'echo 🔄 Applying all Kubernetes manifests...'
                     bat 'kubectl apply -f k8s-specifications\\'
 
