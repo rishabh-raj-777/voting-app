@@ -39,19 +39,21 @@ pipeline {
         }
 
         stage('Deploy to AKS') {
-            withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
-                bat 'echo 🔄 Applying all Kubernetes manifests...'
-                bat 'kubectl apply -f k8s-specifications\\'
+            steps {
+                withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
+                    bat 'echo 🔄 Applying all Kubernetes manifests...'
+                    bat 'kubectl apply -f k8s-specifications\\'
 
-                bat 'echo 🔄 Updating images for deployments...'
-                bat 'kubectl set image deployment/vote vote=rishabhraj7/vote:1 -n default'
-                bat 'kubectl set image deployment/result result=rishabhraj7/result:1 -n default'
-                bat 'kubectl set image deployment/worker worker=rishabhraj7/worker:1 -n default'
+                    bat 'echo 🔄 Updating images for deployments...'
+                    bat "kubectl set image deployment/vote vote=%DOCKER_USER%/vote:%IMAGE_TAG% -n %K8S_NAMESPACE%"
+                    bat "kubectl set image deployment/result result=%DOCKER_USER%/result:%IMAGE_TAG% -n %K8S_NAMESPACE%"
+                    bat "kubectl set image deployment/worker worker=%DOCKER_USER%/worker:%IMAGE_TAG% -n %K8S_NAMESPACE%"
 
-                bat 'echo 🔍 Checking rollout status...'
-                bat 'kubectl rollout status deployment/vote -n default --timeout=60s'
-                bat 'kubectl rollout status deployment/result -n default --timeout=60s'
-                bat 'kubectl rollout status deployment/worker -n default --timeout=60s'
+                    bat 'echo 🔍 Checking rollout status...'
+                    bat "kubectl rollout status deployment/vote -n %K8S_NAMESPACE% --timeout=60s"
+                    bat "kubectl rollout status deployment/result -n %K8S_NAMESPACE% --timeout=60s"
+                    bat "kubectl rollout status deployment/worker -n %K8S_NAMESPACE% --timeout=60s"
+                }
             }
         }
     }
